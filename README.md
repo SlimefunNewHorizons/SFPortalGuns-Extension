@@ -1,56 +1,61 @@
+<p align="center">
+  <img src="assets/new-horizons-banner.svg" width="100%" alt="Slimefun New Horizons" />
+</p>
+
+<p align="center">
+  <img src="banner.svg" width="100%" alt="SF PortalGuns Extension — animated portal banner" />
+</p>
+
 # SF PortalGuns Extension
 
-Addon de Slimefun para Paper/Purpur **1.21.11** y Java **21**. Añade movilidad tecnológica sin mods de cliente: portales enlazados, recarga mediante fluido verde, destinos guardados y una Gravity Gun.
+> **Portal technology for DrakesCraft's Slimefun progression.** Circular named portals, green Portal Fluid, saved destinations and a Gravity Gun — all server-side on Paper/Purpur 1.21.11.
 
-## Qué incluye
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-67E8F9?style=for-the-badge&logo=minecraft&logoColor=white)](https://drakescraft.cl)
+[![Platform](https://img.shields.io/badge/Platform-Paper%20%2F%20Purpur-7C3AED?style=for-the-badge)](https://papermc.io)
+[![Java](https://img.shields.io/badge/Java-21-FBBF24?style=for-the-badge&logo=openjdk&logoColor=white)](https://adoptium.net)
 
-- **Portal Gun** con dos modos: Linked crea hasta dos portales enlazados; Saved viaja al destino seleccionado.
-- **Portal Fluid** recarga la pistola a 100 unidades desde la mano secundaria.
-- **Panel de control**: Shift + clic derecho abre el menú.
-- **Ocho ubicaciones guardadas por pistola**: clic izquierdo selecciona y clic derecho elimina.
-- **Modo infinito** para quien tenga sfportalguns.infinite.
-- **Cooldown de 10 segundos** entre usos de teletransporte.
-- **Protecciones**: consulta el gestor de protecciones de Slimefun para respetar ProtectionStones y regiones del servidor.
-- **Gravity Gun**: levanta o lanza entidades y bloques dentro de los permisos aplicables.
+## What it adds
 
-## Uso
+- **Portal Gun** — fires a linked pair of circular portals. Each gun keeps its own portal name and color.
+- **Portal Fluid** — green fuel that refills a gun to 100 charge from the off-hand.
+- **Saved travel** — eight destinations per gun; travel consumes charge and validates a safe arrival point.
+- **Native 1.21.11 panel** — Shift + right-click opens a Minecraft Dialog with name, color, mode, destination and staff infinite-mode controls.
+- **Visual portals** — a ring of display entities plus a floating `I` / `II` label. No permanent blocks and no continuous particle emitter.
+- **Gravity Gun** — grabs and moves permitted entities and blocks.
 
-1. Fabrica Portal Fluid y la Portal Gun en la Magic Workbench.
-2. Deja Portal Fluid en la mano secundaria y usa la pistola para recargarla.
-3. Usa la pistola normalmente para disparar portales enlazados.
-4. Usa Shift + clic derecho para cambiar de modo, guardar ubicaciones o seleccionar un destino.
-5. En modo Saved, usa la pistola para viajar al destino seleccionado.
+## Using a Portal Gun
 
-## Seguridad y compatibilidad
+1. Craft **Portal Fluid** and a **Portal Gun** in the Magic Workbench.
+2. Hold Portal Fluid in the off-hand and right-click to refill.
+3. In **Linked** mode, right-click twice on valid surfaces to create the pair.
+4. In **Saved** mode, use the native panel to save and select destinations, then right-click to travel.
+5. Use `/pg name <name>` or `/pg color <lime|cyan|purple|orange|red|blue>` for fast edits. `/pg legacy` opens the transitional inventory panel for deleting saved locations.
 
-- Requiere **Slimefun4-Drake**.
-- No modifica bloques al crear ni usar un portal; por ello no interfiere con FastAsyncWorldEdit.
-- La colocación exige permiso de romper el bloque de anclaje y colocar en el espacio del portal.
-- El tránsito exige permiso de interacción en origen y destino.
-- Las ubicaciones guardadas deben seguir siendo seguras y permitidas cuando se usan.
+## Safety and compatibility
 
-## Compilar
-
-    mvn clean package
-
-El JAR queda en target/sfportalguns-extension-1.1.0-SNAPSHOT.jar.
-
-## Instalación
-
-1. Detén el servidor de forma segura.
-2. Conserva una copia del JAR anterior.
-3. Elimina el JAR anterior de PortalGun para evitar dos plugins cargados.
-4. Copia el nuevo JAR a plugins junto con Slimefun4-Drake.
-5. Inicia el servidor y comprueba la carga antes de entregarlo a jugadores.
-
-## Permisos
-
-| Permiso | Uso |
+| Area | Behavior |
 |---|---|
-| sfportalguns.infinite | Activa el modo de carga infinita. Por defecto, sólo OP. |
+| Server | Paper/Purpur **1.21.11**, Java **21** |
+| Dependency | [Slimefun4-Drake](https://github.com/SlimefunNewHorizons/Slimefun4-Drake) |
+| Claims | Checks Slimefun's protection manager for placement and both ends of travel, covering ProtectionStones and compatible regions |
+| Cooldown | 10 seconds between portal teleports |
+| FAWE | Portal creation does not edit blocks; it uses display entities only |
+| Bedrock | Test through current Geyser/Floodgate before making native dialogs mandatory in a player flow |
 
-## Créditos
+## Build
 
-Código original de officialdakari. Port y mantenimiento para DrakesCraft por DrakesCraft Labs.
+```bash
+mvn clean package
+```
 
-Licencia: GPL-3.0-only.
+The artifact is `target/sfportalguns-extension-1.1.0-SNAPSHOT.jar`.
+
+## Permission
+
+| Permission | Effect |
+|---|---|
+| `sfportalguns.infinite` | Allows staff to toggle unlimited charge. Defaults to OP. |
+
+## Attribution and license
+
+Original code: **officialdakari**. DrakesCraft/Slimefun New Horizons maintains the 1.21.11 port and extensions. Licensed under **GPL-3.0-only**.

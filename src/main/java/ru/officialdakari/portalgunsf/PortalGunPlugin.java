@@ -2,49 +2,146 @@ package ru.officialdakari.portalgunsf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
-import org.bukkit.FluidCollisionMode;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
 
 import com.github.drakescraft_labs.slimefun4.api.SlimefunAddon;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
+import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
+import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
 import com.github.drakescraft_labs.slimefun4.implementation.SlimefunItems;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.config.Config;
 import com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
 
 public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
-
-    Config config;
 
     static NamespacedKey itemMetaPortalGunId;
     static NamespacedKey itemMetaPortalGunColor1;
     static NamespacedKey itemMetaPortalGunColor2;
-    static HashMap<String, ArrayList<PortalData>> portals = new HashMap();
-
-    static HashMap<String, Entity> holding = new HashMap();
-    static HashMap<String, BlockState> holdingBlock = new HashMap();
-
+    static NamespacedKey itemMetaPortalGunCharge;
+    static NamespacedKey itemMetaPortalGunMode;
+    static NamespacedKey itemMetaPortalGunInfinite;
+    static NamespacedKey itemMetaPortalGunSelected;
+    static HashMap<String, ArrayList<PortalData>> portals = new HashMap<>();
+    static HashMap<String, Entity> holding = new HashMap<>();
+    static HashMap<String, org.bukkit.block.BlockState> holdingBlock = new HashMap<>();
     static PortalGunPlugin plugin;
 
-    static Boolean portalExists(Location loc) {
-        for (ArrayList<PortalData> al : portals.values()) {
-            for (PortalData pd : al) {
-                if (loc.clone().add(0, -1, 0).distance(pd.location) == 0 || loc.clone().add(0, 1, 0).distance(pd.location) == 0 || pd.location.distance(loc) == 0) {
+    private static final Random RANDOM = new Random();
+    private static final String PORTAL_GUN_ID = "PORTAL_GUN";
+    private static final String PORTAL_FLUID_ID = "PORTAL_FLUID";
+    private PortalGunMenuListener menuListener;
+
+    static NamespacedKey savedLocationKey(int slot) {
+        return new NamespacedKey(plugin, "saved_location_" + slot);
+    }
+
+    static PortalGunMenuListener getMenuListener() {
+        return plugin.menuListener;
+    }
+
+    static ItemStack findHeldPortalGun(Player player) {
+        ItemStack main = player.getInventory().getItemInMainHand();
+        if (isPortalGun(main)) {
+            return main;
+        }
+        ItemStack offhand = player.getInventory().getItemInOffHand();
+        return isPortalGun(offhand) ? offhand : null;
+    }
+
+    static boolean isPortalGun(ItemStack item) {
+        SlimefunItem slimefunItem = SlimefunItem.getByItem(item);
+        return slimefunItem != null && PORTAL_GUN_ID.equals(slimefunItem.getId());
+    }
+
+    static boolean tryRefillFromOffhand(Player player, ItemStack gun) {
+        ItemStack fluid = player.getInventory().getItemInOffHand();
+        SlimefunItem slimefunItem = SlimefunItem.getByItem(fluid);
+        if (slimefunItem == null || !PORTAL_FLUID_ID.equals(slimefunItem.getId()) || PortalGunState.charge(gun) >= PortalGunState.MAX_CHARGE) {
+            return false;
+        }
+
+        if (!PortalGunState.isInfinite(gun)) {
+            fluid.setAmount(fluid.getAmount() - 1);
+        }
+        PortalGunState.refill(gun);
+        player.playSound(player.getLocation(), Sound.ITEM_BOTTLE_FILL, 1, 1.2F);
+        player.sendMessage(ChatColor.GREEN + "Portal Gun recharged.");
+        return true;
+    }
+
+    static void teleportToSavedLocation(Player player, ItemStack gun) {
+        int slot = PortalGunState.selectedSlot(gun);
+        Location destination = slot < 0 ? null : PortalGunState.getSavedLocation(gun, slot);
+        if (destination == null || destination.getWorld() == null) {
+            player.sendMessage(ChatColor.RED + "Select a saved location in the Portal Gun menu.");
+            return;
+        }
+        if (!destination.getBlock().isPassable() || !destination.clone().add(0, 1, 0).getBlock().isPassable()
+            || !Slimefun.getProtectionManager().hasPermission(player, destination, Interaction.BREAK_BLOCK)) {
+            player.sendMessage(ChatColor.RED + "That saved destination is not currently safe or permitted.");
+            return;
+        }
+        if (!PortalGunState.consume(gun, PortalGunState.TRAVEL_COST)) {
+            player.sendMessage(ChatColor.RED + "You need more Portal Fluid to travel.");
+            return;
+        }
+        player.teleport(destination);
+        player.playSound(destination, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    static String portalColor(ItemStack item, boolean first) {
+        NamespacedKey key = first ? itemMetaPortalGunColor1 : itemMetaPortalGunColor2;
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        String color = pdc.get(key, PersistentDataType.STRING);
+        if (color == null) {
+            int red = first ? 40 + RANDOM.nextInt(80) : 150 + RANDOM.nextInt(100);
+            int green = first ? 120 + RANDOM.nextInt(120) : 20 + RANDOM.nextInt(90);
+            int blue = first ? 140 + RANDOM.nextInt(100) : 10 + RANDOM.nextInt(70);
+            color = red + ";" + green + ";" + blue;
+            pdc.set(key, PersistentDataType.STRING, color);
+            item.setItemMeta(meta);
+        }
+        return color;
+    }
+
+    static boolean isPortalPlaceable(Location loc, BlockFace face) {
+        if (portalExists(loc)) {
+            return false;
+        }
+        Location target = loc.clone().add(face.getModX(), face.getModY(), face.getModZ());
+        if (!target.getBlock().isPassable()) {
+            return false;
+        }
+        return switch (face) {
+            case NORTH, SOUTH, EAST, WEST -> target.clone().add(0, 1, 0).getBlock().isPassable();
+            default -> true;
+        };
+    }
+
+    static boolean portalExists(Location location) {
+        for (ArrayList<PortalData> portalPair : portals.values()) {
+            for (PortalData portal : portalPair) {
+                if (portal.location.getWorld().equals(location.getWorld()) && portal.location.distanceSquared(location) < 4) {
                     return true;
                 }
             }
@@ -52,199 +149,71 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
         return false;
     }
 
-    static Boolean isPortalPlaceable(Location loc, BlockFace bf) {
-        if (portalExists(loc)) {
-            return false;
-        }
-        if (bf == BlockFace.DOWN) {
-            loc = loc.add(0, -1, 0);
-            return loc.getBlock().getType() == Material.AIR;
-        } else if (bf == BlockFace.UP) {
-            loc = loc.add(0, 1, 0);
-            return loc.getBlock().getType() == Material.AIR;
-        } else if (bf == BlockFace.NORTH) {
-            loc = loc.add(0, 0, -1);
-            return loc.getBlock().getType() == Material.AIR && loc.add(0, 1, 0).getBlock().getType() == Material.AIR;
-        } else if (bf == BlockFace.SOUTH) {
-            loc = loc.add(0, 0, 1);
-            return loc.getBlock().getType() == Material.AIR && loc.add(0, 1, 0).getBlock().getType() == Material.AIR;
-        } else if (bf == BlockFace.WEST) {
-            loc = loc.add(-1, 0, 0);
-            return loc.getBlock().getType() == Material.AIR && loc.add(0, 1, 0).getBlock().getType() == Material.AIR;
-        } else if (bf == BlockFace.EAST) {
-            loc = loc.add(1, 0, 0);
-            return loc.getBlock().getType() == Material.AIR && loc.add(0, 1, 0).getBlock().getType() == Material.AIR;
-        }
-        return false;
-    }
-
     @Override
     public void onEnable() {
-        config = new Config(this);
-
         plugin = this;
-
         itemMetaPortalGunId = new NamespacedKey(this, "unique_portals_id");
-        itemMetaPortalGunColor1 = new NamespacedKey(this, "pg_1color");
-        itemMetaPortalGunColor2 = new NamespacedKey(this, "pg_2color");
+        itemMetaPortalGunColor1 = new NamespacedKey(this, "portal_color_one");
+        itemMetaPortalGunColor2 = new NamespacedKey(this, "portal_color_two");
+        itemMetaPortalGunCharge = new NamespacedKey(this, "portal_charge");
+        itemMetaPortalGunMode = new NamespacedKey(this, "portal_mode");
+        itemMetaPortalGunInfinite = new NamespacedKey(this, "infinite_mode");
+        itemMetaPortalGunSelected = new NamespacedKey(this, "selected_destination");
 
-        NamespacedKey categoryId = new NamespacedKey(this, "portal_gun");
-        ItemStack categoryItem = CustomItemStack.create(Material.DIAMOND, "&cPortal Gun", "The Cake is a Lie");
+        ItemGroup group = new ItemGroup(new NamespacedKey(this, "portal_guns"), CustomItemStack.create(Material.LIME_DYE,
+            "&2&lPortal Guns Extension", "&7Charged interdimensional technology"));
 
-        ItemGroup itemGroup = new ItemGroup(categoryId, categoryItem);
+        SlimefunItemStack fluid = new SlimefunItemStack(PORTAL_FLUID_ID, Material.SLIME_BALL, "&aPortal Fluid",
+            "&7Refills a Portal Gun to 100 charge.");
+        new SlimefunItem(group, fluid, RecipeType.MAGIC_WORKBENCH, new ItemStack[] {
+            new ItemStack(Material.SLIME_BALL), SlimefunItems.BATTERY.asOne(), new ItemStack(Material.ENDER_PEARL),
+            null, new ItemStack(Material.LIME_DYE), null, null, null, null
+        }).register(this);
 
-        SlimefunItemStack portalGunItemStack = new SlimefunItemStack("PORTAL_GUN", Material.NETHERITE_HOE, "&aPortal Gun", "", "&7The Cake is a Lie");
-
-        ItemStack[] portalGunRecipe = {
+        SlimefunItemStack portalGun = new SlimefunItemStack(PORTAL_GUN_ID, Material.NETHERITE_HOE, "&aPortal Gun",
+            "&7Right click: fire portal", "&7Shift + right click: control panel", "&7Use Portal Fluid in offhand to recharge.");
+        new PortalGunItem(group, portalGun, RecipeType.MAGIC_WORKBENCH, new ItemStack[] {
             new ItemStack(Material.BOW), new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.ENDER_PEARL),
-            null, SlimefunItems.ELECTRO_MAGNET.asOne(), null,
-            null, null, null
-        };
+            null, SlimefunItems.ELECTRO_MAGNET.asOne(), null, null, null, null
+        }).register(this);
 
-        SlimefunItemStack gravityGunItemStack = new SlimefunItemStack("GRAVITY_GUN", Material.GOLDEN_HOE, "&bGravity Gun", "", "&7Grab blocks and entities");
-        
-        ItemStack[] gravityGunRecipe = {
+        SlimefunItemStack gravityGun = new SlimefunItemStack("GRAVITY_GUN", Material.GOLDEN_HOE, "&bGravity Gun",
+            "&7Grab blocks and entities");
+        new GravityGunItem(group, gravityGun, RecipeType.MAGIC_WORKBENCH, new ItemStack[] {
             new ItemStack(Material.FISHING_ROD), new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.ENDER_PEARL),
-            null, SlimefunItems.ELECTRO_MAGNET.asOne(), null,
-            null, null, null
-        };
+            null, SlimefunItems.ELECTRO_MAGNET.asOne(), null, null, null, null
+        }).register(this);
 
-        PortalGunItem pgItem = new PortalGunItem(itemGroup, portalGunItemStack, RecipeType.MAGIC_WORKBENCH, portalGunRecipe);
-        pgItem.register(this);
-
-        GravityGunItem ggItem = new GravityGunItem(itemGroup, gravityGunItemStack, RecipeType.MAGIC_WORKBENCH, gravityGunRecipe);
-        ggItem.register(this);
-
+        menuListener = new PortalGunMenuListener(this);
         Bukkit.getPluginManager().registerEvents(new PortalGunEventListener(), this);
+        Bukkit.getPluginManager().registerEvents(menuListener, this);
+        Bukkit.getScheduler().runTaskTimer(this, this::renderPortals, 2L, 2L);
+    }
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            for (String playerName : holding.keySet()) {
-                Entity entity = holding.get(playerName);
-                Player p = Bukkit.getPlayer(playerName);
-                if (p == null) {
-                    holding.remove(playerName);
-                    continue;
-                }
-                RayTraceResult rtr = p.rayTraceBlocks(6, FluidCollisionMode.NEVER);
-                if (rtr != null) {
-                    Location loc = rtr.getHitPosition().toLocation(p.getWorld());
-                    if (entity.getType() == EntityType.BLOCK_DISPLAY) loc = loc.setDirection(new Vector(0, 0, 0));
-                    entity.teleport(loc.add(0, 0.8, 0));
-                } else {
-                    Location loc = p.getLocation().clone().add(p.getLocation().getDirection().multiply(4));
-                    if (entity.getType() == EntityType.BLOCK_DISPLAY) loc = loc.setDirection(new Vector(0, 0, 0));
-                    entity.teleport(loc.add(0, 0.8, 0));
-                }
-                entity.setFallDistance(0);
+    private void renderPortals() {
+        for (ArrayList<PortalData> portalPair : portals.values()) {
+            for (PortalData portal : portalPair) {
+                Location point = portal.location.clone().add(0.5, 1, 0.5);
+                portal.location.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, point, 18, 0.22, 0.65, 0.22, 0,
+                    new Particle.DustTransition(portal.color, portal.color, 1.2F));
             }
-        }, 5L, 5L);
-
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            for (String key : portals.keySet()) {
-                for (PortalData pd : portals.get(key)) {
-                    if (pd.blockFace == BlockFace.UP) {
-                        pd.location.getWorld().spawnParticle(
-                                Particle.DUST_COLOR_TRANSITION,
-                                pd.location.getBlockX() + 0.5,
-                                pd.location.getBlockY() + 0.98,
-                                pd.location.getBlockZ() + 0.5,
-                                30,
-                                0.2,
-                                0,
-                                0.2,
-                                0,
-                                new Particle.DustTransition(pd.color, pd.color, 1)
-                        );
-                    } else if (pd.blockFace == BlockFace.DOWN) {
-                        pd.location.getWorld().spawnParticle(
-                                Particle.DUST_COLOR_TRANSITION,
-                                pd.location.getBlockX() + 0.5,
-                                pd.location.getBlockY() - 0.02,
-                                pd.location.getBlockZ() + 0.5,
-                                30,
-                                0.2,
-                                0,
-                                0.2,
-                                0,
-                                new Particle.DustTransition(pd.color, pd.color, 1)
-                        );
-                    } else if (pd.blockFace == BlockFace.NORTH) {
-                        pd.location.getWorld().spawnParticle(
-                                Particle.DUST_COLOR_TRANSITION,
-                                pd.location.getBlockX() + 0.45,
-                                pd.location.getBlockY() + 1,
-                                pd.location.getBlockZ() - 0.02,
-                                30,
-                                0.2,
-                                0.45,
-                                0,
-                                0,
-                                new Particle.DustTransition(pd.color, pd.color, 1)
-                        );
-                    } else if (pd.blockFace == BlockFace.SOUTH) {
-                        pd.location.getWorld().spawnParticle(
-                                Particle.DUST_COLOR_TRANSITION,
-                                pd.location.getBlockX() + 0.45,
-                                pd.location.getBlockY() + 1,
-                                pd.location.getBlockZ() + 1,
-                                30,
-                                0.2,
-                                0.45,
-                                0,
-                                0,
-                                new Particle.DustTransition(pd.color, pd.color, 1)
-                        );
-                    } else if (pd.blockFace == BlockFace.WEST) {
-                        pd.location.getWorld().spawnParticle(
-                                Particle.DUST_COLOR_TRANSITION,
-                                pd.location.getBlockX() - 0.02,
-                                pd.location.getBlockY() + 1,
-                                pd.location.getBlockZ() + 0.45,
-                                30,
-                                0,
-                                0.45,
-                                0.2,
-                                0,
-                                new Particle.DustTransition(pd.color, pd.color, 1)
-                        );
-                    } else if (pd.blockFace == BlockFace.EAST) {
-                        pd.location.getWorld().spawnParticle(
-                                Particle.DUST_COLOR_TRANSITION,
-                                pd.location.getBlockX() + 1,
-                                pd.location.getBlockY() + 1,
-                                pd.location.getBlockZ() + 0.45,
-                                30,
-                                0,
-                                0.45,
-                                0.2,
-                                0,
-                                new Particle.DustTransition(pd.color, pd.color, 1)
-                        );
-                    }
-                }
-            }
-        }, 1L, 1L);
+        }
     }
 
     @Override
     public void onDisable() {
-
+        portals.clear();
+        holding.clear();
+        holdingBlock.clear();
     }
 
     @Override
     public JavaPlugin getJavaPlugin() {
-        // This is a method that links your SlimefunAddon to your Plugin.
-        // Just return "this" in this case, so they are linked
         return this;
     }
 
     @Override
     public String getBugTrackerURL() {
-        // Here you can return a link to your Bug Tracker.
-        // This link will be displayed to Server Owners if there is an issue
-        // with this Addon. Return null if you have no bug tracker.
-        // Normally you can just use GitHub's Issues tab:
-        // https://github.com/YOURNAME/YOURPROJECT/issues
-        return null;
+        return "https://github.com/SlimefunNewHorizons/SFPortalGuns-Extension/issues";
     }
 }

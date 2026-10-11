@@ -1,27 +1,22 @@
 package ru.officialdakari.portalgunsf;
 
-import java.util.UUID;
-
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import com.github.drakescraft_labs.slimefun4.api.events.PlayerRightClickEvent;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
-import com.github.drakescraft_labs.slimefun4.core.handlers.ItemUseHandler;
 import com.github.drakescraft_labs.slimefun4.core.handlers.ItemDropHandler;
+import com.github.drakescraft_labs.slimefun4.core.handlers.ItemUseHandler;
 
 public class PortalGunItem extends SlimefunItem {
 
@@ -31,70 +26,15 @@ public class PortalGunItem extends SlimefunItem {
 
     @Override
     public void preRegister() {
-        ItemUseHandler useHandler = this::onItemUse;
-        ItemDropHandler dropHandler = this::onPgItemDrop;
-
-        addItemHandler(useHandler);
-        addItemHandler(dropHandler);
+        addItemHandler((ItemUseHandler) this::onItemUse);
+        addItemHandler((ItemDropHandler) this::onDrop);
     }
 
-    private String getPortalGunId(ItemStack itemStack) {
-        ItemMeta im = itemStack.getItemMeta();
-        PersistentDataContainer pdc = im.getPersistentDataContainer();
-        String id;
-        if (!pdc.has(PortalGunPlugin.itemMetaPortalGunId, PersistentDataType.STRING)) {
-            id = UUID.randomUUID().toString();
-            pdc.set(PortalGunPlugin.itemMetaPortalGunId, PersistentDataType.STRING, id);
-            itemStack.setItemMeta(im);
-        } else {
-            id = pdc.get(PortalGunPlugin.itemMetaPortalGunId, PersistentDataType.STRING);
-        }
-        return id;
-    }
-
-    private String getPortal1Color(ItemStack itemStack) {
-        ItemMeta im = itemStack.getItemMeta();
-        PersistentDataContainer pdc = im.getPersistentDataContainer();
-        String color;
-        if (!pdc.has(PortalGunPlugin.itemMetaPortalGunColor1, PersistentDataType.STRING)) {
-            color = String.valueOf((int) Math.floor(Math.random() * 255)) + ";" + String.valueOf((int) Math.floor(Math.random() * 255)) + ";" + String.valueOf((int) Math.floor(Math.random() * 255));
-            pdc.set(PortalGunPlugin.itemMetaPortalGunColor1, PersistentDataType.STRING, color);
-            itemStack.setItemMeta(im);
-        } else {
-            color = pdc.get(PortalGunPlugin.itemMetaPortalGunColor1, PersistentDataType.STRING);
-        }
-
-        return color;
-    }
-
-    private String getPortal2Color(ItemStack itemStack) {
-        ItemMeta im = itemStack.getItemMeta();
-        PersistentDataContainer pdc = im.getPersistentDataContainer();
-        String color;
-        if (!pdc.has(PortalGunPlugin.itemMetaPortalGunColor2, PersistentDataType.STRING)) {
-            color = String.valueOf((int) Math.floor(255 - Math.random() * 255)) + ";" + String.valueOf((int) Math.floor(255 - Math.random() * 255)) + ";" + String.valueOf((int) Math.floor(255 - Math.random() * 255));
-            pdc.set(PortalGunPlugin.itemMetaPortalGunColor2, PersistentDataType.STRING, color);
-            itemStack.setItemMeta(im);
-        } else {
-            color = pdc.get(PortalGunPlugin.itemMetaPortalGunColor2, PersistentDataType.STRING);
-        }
-
-        return color;
-        // String[] s = color.split(";");
-        // return Color.fromRGB(Integer.parseInt(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]));
-    }
-
-    private boolean onPgItemDrop(PlayerDropItemEvent event, Player p, Item item) {
-        if (!p.isSneaking()) {
-            ItemStack itemStack = item.getItemStack();
-            ItemMeta im = itemStack.getItemMeta();
-            PersistentDataContainer pdc = im.getPersistentDataContainer();
-            if (!pdc.has(PortalGunPlugin.itemMetaPortalGunId, PersistentDataType.STRING)) {
-                return false;
-            }
+    private boolean onDrop(PlayerDropItemEvent event, Player player, org.bukkit.entity.Item dropped) {
+        if (!player.isSneaking()) {
             event.setCancelled(true);
-            PortalGunPlugin.portals.remove(pdc.get(PortalGunPlugin.itemMetaPortalGunId, PersistentDataType.STRING));
-            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_CHAIN, 1, 1);
+            PortalGunPlugin.portals.remove(PortalGunState.gunId(dropped.getItemStack()));
+            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_CHAIN, 1, 1);
         }
         return false;
     }
@@ -102,22 +42,40 @@ public class PortalGunItem extends SlimefunItem {
     private void onItemUse(PlayerRightClickEvent event) {
         event.cancel();
 
-        Player p = event.getPlayer();
-        Location loc = p.getLocation().clone().add(0, 1.5, 0);
-        loc = loc.add(loc.getDirection().multiply(1));
-        Snowball ball = (Snowball) p.getWorld().spawnEntity(loc, EntityType.SNOWBALL);
-        ball.setGravity(false);
-        ball.setBounce(false);
-        ball.setGlowing(true);
-        ball.setVelocity(loc.getDirection().multiply(4));
-        ball.setMetadata("portalgunball", new FixedMetadataValue(addon.getJavaPlugin(), p.getName()));
+        Player player = event.getPlayer();
+        ItemStack gun = event.getItem();
 
-        p.playSound(loc, Sound.ENTITY_ENDER_PEARL_THROW, 1, 1);
+        if (player.isSneaking()) {
+            PortalGunPlugin.getMenuListener().open(player, gun);
+            return;
+        }
 
-        String pgId = getPortalGunId(event.getItem());
-        ball.setMetadata("portalgunid", new FixedMetadataValue(addon.getJavaPlugin(), pgId));
-        ball.setMetadata("color_1", new FixedMetadataValue(addon.getJavaPlugin(), getPortal1Color(event.getItem())));
-        ball.setMetadata("color_2", new FixedMetadataValue(addon.getJavaPlugin(), getPortal2Color(event.getItem())));
+        if (PortalGunPlugin.tryRefillFromOffhand(player, gun)) {
+            return;
+        }
+
+        if ("SAVED".equals(PortalGunState.mode(gun))) {
+            PortalGunPlugin.teleportToSavedLocation(player, gun);
+            return;
+        }
+
+        if (!PortalGunState.consume(gun, PortalGunState.SHOT_COST)) {
+            player.sendMessage(ChatColor.RED + "Your Portal Gun needs Portal Fluid.");
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 0.7F);
+            return;
+        }
+
+        Location launch = player.getEyeLocation().add(player.getEyeLocation().getDirection().multiply(0.4));
+        Snowball projectile = (Snowball) player.getWorld().spawnEntity(launch, EntityType.SNOWBALL);
+        projectile.setGravity(false);
+        projectile.setBounce(false);
+        projectile.setGlowing(true);
+        projectile.setVelocity(launch.getDirection().multiply(4));
+        projectile.setMetadata("portalgunball", new FixedMetadataValue(addon.getJavaPlugin(), player.getUniqueId().toString()));
+        projectile.setMetadata("portalgunid", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunState.gunId(gun)));
+        projectile.setMetadata("color_1", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunPlugin.portalColor(gun, true)));
+        projectile.setMetadata("color_2", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunPlugin.portalColor(gun, false)));
+
+        player.playSound(launch, Sound.ENTITY_ENDER_PEARL_THROW, 1, 1);
     }
-
 }

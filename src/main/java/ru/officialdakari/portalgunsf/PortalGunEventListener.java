@@ -22,6 +22,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+
 public class PortalGunEventListener implements Listener {
 
     ArrayList<UUID> dnt = new ArrayList(); // dnt stands for do not teleport
@@ -42,6 +45,11 @@ public class PortalGunEventListener implements Listener {
                     return;
                 }
                 Location loc = ball.getLocation();
+
+                if (!Slimefun.getProtectionManager().hasPermission(p, e.getHitBlock().getLocation(), Interaction.BREAK_BLOCK)) {
+                    p.sendMessage("§c§oYou cannot create a portal in this protected area.");
+                    return;
+                }
 
                 if (!PortalGunPlugin.isPortalPlaceable(e.getHitBlock().getLocation(), e.getHitBlockFace())) {
                     p.sendMessage("\u00A7c\u00A7oCan't place a portal there.");

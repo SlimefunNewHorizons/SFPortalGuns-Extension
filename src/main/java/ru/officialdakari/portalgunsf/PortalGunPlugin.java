@@ -2,7 +2,9 @@ package ru.officialdakari.portalgunsf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -43,6 +45,7 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
     static HashMap<String, ArrayList<PortalData>> portals = new HashMap<>();
     static HashMap<String, Entity> holding = new HashMap<>();
     static HashMap<String, org.bukkit.block.BlockState> holdingBlock = new HashMap<>();
+    private static final Map<UUID, Long> portalCooldowns = new HashMap<>();
     static PortalGunPlugin plugin;
 
     private static final Random RANDOM = new Random();
@@ -95,13 +98,16 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
             player.sendMessage(ChatColor.RED + "Select a saved location in the Portal Gun menu.");
             return;
         }
-        if (!destination.getBlock().isPassable() || !destination.clone().add(0, 1, 0).getBlock().isPassable()
-            || !Slimefun.getProtectionManager().hasPermission(player, destination, Interaction.BREAK_BLOCK)) {
-            player.sendMessage(ChatColor.RED + "That saved destination is not currently safe or permitted.");
+        if (!destination.getBlock().isPassable() || !destination.clone().add(0, 1, 0).getBlock().isPassable()) {
+            player.sendMessage(ChatColor.RED + "That saved destination is not currently safe.");
             return;
         }
         if (!PortalGunState.consume(gun, PortalGunState.TRAVEL_COST)) {
             player.sendMessage(ChatColor.RED + "You need more Portal Fluid to travel.");
+            return;
+        }
+        if (!canTravel(player, player.getLocation(), destination)) {
+            PortalGunState.setCharge(gun, PortalGunState.charge(gun) + PortalGunState.TRAVEL_COST);
             return;
         }
         player.teleport(destination);
@@ -122,6 +128,25 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
             item.setItemMeta(meta);
         }
         return color;
+    }
+
+    static boolean canTravel(Player player, Location from, Location destination) {
+        long now = System.currentTimeMillis();
+        long lastUse = portalCooldowns.getOrDefault(player.getUniqueId(), 0L);
+        long remaining = 10_000L - (now - lastUse);
+        if (remaining > 0) {
+            player.sendMessage(ChatColor.RED + "Portal stabilizing: wait " + ((remaining + 999) / 1000) + " seconds.");
+            return false;
+        }
+
+        if (!Slimefun.getProtectionManager().hasPermission(player, from, Interaction.INTERACT_BLOCK)
+            || !Slimefun.getProtectionManager().hasPermission(player, destination, Interaction.INTERACT_BLOCK)) {
+            player.sendMessage(ChatColor.RED + "You cannot use a portal across these protected regions.");
+            return false;
+        }
+
+        portalCooldowns.put(player.getUniqueId(), now);
+        return true;
     }
 
     static boolean isPortalPlaceable(Location loc, BlockFace face) {

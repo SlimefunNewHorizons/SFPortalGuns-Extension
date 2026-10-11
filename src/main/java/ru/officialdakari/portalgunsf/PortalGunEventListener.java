@@ -46,7 +46,9 @@ public class PortalGunEventListener implements Listener {
                 }
                 Location loc = ball.getLocation();
 
-                if (!Slimefun.getProtectionManager().hasPermission(p, e.getHitBlock().getLocation(), Interaction.BREAK_BLOCK)) {
+                Location placement = e.getHitBlock().getLocation().clone().add(e.getHitBlockFace().getModX(), e.getHitBlockFace().getModY(), e.getHitBlockFace().getModZ());
+                if (!Slimefun.getProtectionManager().hasPermission(p, e.getHitBlock().getLocation(), Interaction.BREAK_BLOCK)
+                    || !Slimefun.getProtectionManager().hasPermission(p, placement, Interaction.PLACE_BLOCK)) {
                     p.sendMessage("§c§oYou cannot create a portal in this protected area.");
                     return;
                 }
@@ -131,6 +133,9 @@ public class PortalGunEventListener implements Listener {
                     dnt.add(p.getUniqueId());
 
                     PortalData t = al.get(1);
+                    if (!PortalGunPlugin.canTravel(p, loc, t.location)) {
+                        return;
+                    }
                     Location tloc = t.location.clone();
 
                     tloc.setYaw(loc.getYaw());
@@ -201,6 +206,9 @@ public class PortalGunEventListener implements Listener {
                     dnt.add(p.getUniqueId());
 
                     PortalData t = al.get(0);
+                    if (!PortalGunPlugin.canTravel(p, loc, t.location)) {
+                        return;
+                    }
                     Location tloc = t.location.clone();
 
                     tloc.setYaw(loc.getYaw());

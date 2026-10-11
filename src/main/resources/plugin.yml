@@ -8,3 +8,8 @@ permissions:
   sfportalguns.infinite:
     description: Enables the unlimited Portal Gun mode.
     default: op
+commands:
+  portalguns:
+    description: Names or recolors the Portal Gun you hold.
+    aliases: [pg]
+    usage: /pg <name|color> <value>

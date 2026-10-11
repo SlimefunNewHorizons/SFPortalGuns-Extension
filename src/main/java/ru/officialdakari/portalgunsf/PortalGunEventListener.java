@@ -63,7 +63,7 @@ public class PortalGunEventListener implements Listener {
 
                 ArrayList<PortalData> al = PortalGunPlugin.portals.get(pgId);
                 if (al.size() == 2) {
-                    al.remove(0);
+                    al.remove(0).removeVisuals();
                 }
 
                 p.playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1, 1);
@@ -81,7 +81,10 @@ public class PortalGunEventListener implements Listener {
                 pd.location = e.getHitBlock().getLocation();
                 pd.color = Color.fromRGB(Integer.parseInt(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]));
                 pd.second = second;
+                pd.name = ball.getMetadata("portal_name").get(0).asString();
+                pd.tint = ball.getMetadata("portal_tint").get(0).asString();
 
+                PortalVisual.spawn(pd);
                 al.add(pd);
 
                 PortalGunPlugin.portals.put(pgId, al);
@@ -129,13 +132,12 @@ public class PortalGunEventListener implements Listener {
         for (ArrayList<PortalData> al : PortalGunPlugin.portals.values()) {
             if (al.size() == 2) {
                 if (al.get(0).intersects(loc)) {
-                    p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    dnt.add(p.getUniqueId());
-
                     PortalData t = al.get(1);
                     if (!PortalGunPlugin.canTravel(p, loc, t.location)) {
                         return;
                     }
+                    p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    dnt.add(p.getUniqueId());
                     Location tloc = t.location.clone();
 
                     tloc.setYaw(loc.getYaw());
@@ -202,13 +204,12 @@ public class PortalGunEventListener implements Listener {
                         dnt.remove(p.getUniqueId());
                     }, 5L);
                 } else if (al.get(1).intersects(loc)) {
-                    p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    dnt.add(p.getUniqueId());
-
                     PortalData t = al.get(0);
                     if (!PortalGunPlugin.canTravel(p, loc, t.location)) {
                         return;
                     }
+                    p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    dnt.add(p.getUniqueId());
                     Location tloc = t.location.clone();
 
                     tloc.setYaw(loc.getYaw());

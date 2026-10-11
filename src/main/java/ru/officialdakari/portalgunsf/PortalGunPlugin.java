@@ -12,7 +12,6 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -42,6 +41,8 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
     static NamespacedKey itemMetaPortalGunMode;
     static NamespacedKey itemMetaPortalGunInfinite;
     static NamespacedKey itemMetaPortalGunSelected;
+    static NamespacedKey itemMetaPortalGunName;
+    static NamespacedKey itemMetaPortalGunTint;
     static HashMap<String, ArrayList<PortalData>> portals = new HashMap<>();
     static HashMap<String, Entity> holding = new HashMap<>();
     static HashMap<String, org.bukkit.block.BlockState> holdingBlock = new HashMap<>();
@@ -184,6 +185,8 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
         itemMetaPortalGunMode = new NamespacedKey(this, "portal_mode");
         itemMetaPortalGunInfinite = new NamespacedKey(this, "infinite_mode");
         itemMetaPortalGunSelected = new NamespacedKey(this, "selected_destination");
+        itemMetaPortalGunName = new NamespacedKey(this, "portal_name");
+        itemMetaPortalGunTint = new NamespacedKey(this, "portal_tint");
 
         ItemGroup group = new ItemGroup(new NamespacedKey(this, "portal_guns"), CustomItemStack.create(Material.LIME_DYE,
             "&2&lPortal Guns Extension", "&7Charged interdimensional technology"));
@@ -212,21 +215,21 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
         menuListener = new PortalGunMenuListener(this);
         Bukkit.getPluginManager().registerEvents(new PortalGunEventListener(), this);
         Bukkit.getPluginManager().registerEvents(menuListener, this);
-        Bukkit.getScheduler().runTaskTimer(this, this::renderPortals, 2L, 2L);
+        PortalGunCommand command = new PortalGunCommand();
+        getCommand("portalguns").setExecutor(command);
+        getCommand("portalguns").setTabCompleter(command);
     }
 
-    private void renderPortals() {
-        for (ArrayList<PortalData> portalPair : portals.values()) {
-            for (PortalData portal : portalPair) {
-                Location point = portal.location.clone().add(0.5, 1, 0.5);
-                portal.location.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, point, 18, 0.22, 0.65, 0.22, 0,
-                    new Particle.DustTransition(portal.color, portal.color, 1.2F));
-            }
+    static void removePortalPair(String gunId) {
+        ArrayList<PortalData> pair = portals.remove(gunId);
+        if (pair != null) {
+            pair.forEach(PortalData::removeVisuals);
         }
     }
 
     @Override
     public void onDisable() {
+        portals.values().forEach(pair -> pair.forEach(PortalData::removeVisuals));
         portals.clear();
         holding.clear();
         holdingBlock.clear();

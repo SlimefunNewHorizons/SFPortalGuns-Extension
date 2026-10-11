@@ -33,7 +33,7 @@ public class PortalGunItem extends SlimefunItem {
     private boolean onDrop(PlayerDropItemEvent event, Player player, org.bukkit.entity.Item dropped) {
         if (!player.isSneaking()) {
             event.setCancelled(true);
-            PortalGunPlugin.portals.remove(PortalGunState.gunId(dropped.getItemStack()));
+            PortalGunPlugin.removePortalPair(PortalGunState.gunId(dropped.getItemStack()));
             player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_CHAIN, 1, 1);
         }
         return false;
@@ -75,6 +75,8 @@ public class PortalGunItem extends SlimefunItem {
         projectile.setMetadata("portalgunid", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunState.gunId(gun)));
         projectile.setMetadata("color_1", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunPlugin.portalColor(gun, true)));
         projectile.setMetadata("color_2", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunPlugin.portalColor(gun, false)));
+        projectile.setMetadata("portal_name", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunState.portalName(gun)));
+        projectile.setMetadata("portal_tint", new FixedMetadataValue(addon.getJavaPlugin(), PortalGunState.portalTint(gun)));
 
         player.playSound(launch, Sound.ENTITY_ENDER_PEARL_THROW, 1, 1);
     }

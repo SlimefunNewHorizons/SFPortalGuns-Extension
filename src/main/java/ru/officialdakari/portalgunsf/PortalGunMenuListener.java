@@ -55,6 +55,9 @@ final class PortalGunMenuListener implements Listener {
         if (slot == 11) {
             PortalGunState.toggleMode(gun);
             player.sendMessage(ChatColor.GREEN + "Portal mode: " + PortalGunState.mode(gun));
+        } else if (slot == 12) {
+            PortalGunState.cyclePortalTint(gun);
+            player.sendMessage(ChatColor.GREEN + "Portal color: " + PortalGunState.portalTint(gun));
         } else if (slot == 13) {
             if (!player.hasPermission("sfportalguns.infinite")) {
                 player.sendMessage(ChatColor.RED + "Infinite mode is staff-only.");
@@ -96,8 +99,12 @@ final class PortalGunMenuListener implements Listener {
             ChatColor.GRAY + "Refill by holding Portal Fluid in your offhand."));
         inventory.setItem(11, new CustomItemStack(Material.ENDER_EYE, ChatColor.AQUA + "Mode: " + PortalGunState.mode(gun),
             ChatColor.GRAY + "Click to switch between linked portals and saved destinations."));
+        inventory.setItem(12, new CustomItemStack(Material.valueOf(PortalGunState.portalTint(gun) + "_DYE"), ChatColor.LIGHT_PURPLE + "Portal color: " + PortalGunState.portalTint(gun),
+            ChatColor.GRAY + "Click to cycle its display color."));
         inventory.setItem(13, new CustomItemStack(Material.NETHER_STAR, ChatColor.GOLD + "Infinite mode: " + PortalGunState.isInfinite(gun),
             player.hasPermission("sfportalguns.infinite") ? ChatColor.GRAY + "Click to toggle staff mode." : ChatColor.RED + "Staff permission required."));
+        inventory.setItem(14, new CustomItemStack(Material.NAME_TAG, ChatColor.YELLOW + "Portal name: " + PortalGunState.portalName(gun),
+            ChatColor.GRAY + "Use /pg name <name> to change it."));
         inventory.setItem(15, new CustomItemStack(Material.COMPASS, ChatColor.YELLOW + "Save current location",
             ChatColor.GRAY + "Saves this position into the next free slot."));
 

@@ -1,18 +1,25 @@
-<p align="center">
-  <img src="assets/new-horizons-banner.svg" width="100%" alt="Slimefun New Horizons" />
-</p>
+<div align="center">
 
-<p align="center">
-  <img src="banner.svg" width="100%" alt="SF PortalGuns Extension — animated portal banner" />
-</p>
+<img src="https://raw.githubusercontent.com/SlimefunNewHorizons/.github/main/profile/assets/new-horizons-banner.svg" alt="Slimefun: New Horizons" width="100%" />
+
+<br/>
+
+<img src="banner.svg" width="100%" alt="SF PortalGuns Extension â€” animated portal banner" />
 
 # SF PortalGuns Extension
 
-> **Portal technology for DrakesCraft's Slimefun progression.** Circular named portals, green Portal Fluid, saved destinations and a Gravity Gun — all server-side on Paper/Purpur 1.21.11.
+### Advanced Portal Technology for DrakesCraft & Slimefun 4
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-67E8F9?style=for-the-badge&logo=minecraft&logoColor=white)](https://drakescraft.cl)
 [![Platform](https://img.shields.io/badge/Platform-Paper%20%2F%20Purpur-7C3AED?style=for-the-badge)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21-FBBF24?style=for-the-badge&logo=openjdk&logoColor=white)](https://adoptium.net)
+[![Slimefun](https://img.shields.io/badge/Slimefun4-Compatible-22C55E?style=for-the-badge)](https://github.com/SlimefunNewHorizons/Slimefun4-Drake)
+
+[ðŸŒ� Website](https://web.drakescraft.cl) Â· [ðŸ’¬ Discord](https://discord.gg/rv3vtXZTk7) Â· [ðŸ“¦ Organization](https://github.com/SlimefunNewHorizons)
+
+</div>
+
+---
 
 ## What it adds
 

@@ -1,95 +1,56 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/SlimefunNewHorizons/SFPortalGun/main/banner.svg" width="100%" alt="SFPORTALGUN Animated Banner" />
-</p>
+# SF PortalGuns Extension
 
-# SFPortalGun
+Addon de Slimefun para Paper/Purpur **1.21.11** y Java **21**. Añade movilidad tecnológica sin mods de cliente: portales enlazados, recarga mediante fluido verde, destinos guardados y una Gravity Gun.
 
-> ### 🏰 ¡Únete a la Comunidad Oficial de DrakesCraft!
-> 
-> * 🎮 **IP del Servidor**: `play.drakescraft.net` *(Java 1.21.11 & Bedrock)*
-> * 💬 **Discord Oficial**: [discord.gg/drakescraft](https://discord.gg/rv3vtXZTk7)
-> * 🌐 **Web & Guía**: [drakescraft.net](https://drakescraft.net) — 🛒 **Tienda**: [tienda.drakescraft.net](https://tienda.drakescraft.net)
-> 
-> *¡Juega con este addon y más de 80 expansiones optimizadas en vivo en nuestra network de supervivencia técnica!*
+## Qué incluye
 
----
+- **Portal Gun** con dos modos: Linked crea hasta dos portales enlazados; Saved viaja al destino seleccionado.
+- **Portal Fluid** recarga la pistola a 100 unidades desde la mano secundaria.
+- **Panel de control**: Shift + clic derecho abre el menú.
+- **Ocho ubicaciones guardadas por pistola**: clic izquierdo selecciona y clic derecho elimina.
+- **Modo infinito** para quien tenga sfportalguns.infinite.
+- **Cooldown de 10 segundos** entre usos de teletransporte.
+- **Protecciones**: consulta el gestor de protecciones de Slimefun para respetar ProtectionStones y regiones del servidor.
+- **Gravity Gun**: levanta o lanza entidades y bloques dentro de los permisos aplicables.
 
-Addon de **Slimefun 4** que recrea las icónicas mecánicas de **Portal Gun** (disparo de portales enlazados) y **Gravity Gun** (manipulación física y levitación de mobs y bloques) sin necesidad de mods en el cliente. Portado y adaptado por **DrakesCraft Labs** para Paper/Purpur 1.21.11 en Java 21.
+## Uso
 
----
+1. Fabrica Portal Fluid y la Portal Gun en la Magic Workbench.
+2. Deja Portal Fluid en la mano secundaria y usa la pistola para recargarla.
+3. Usa la pistola normalmente para disparar portales enlazados.
+4. Usa Shift + clic derecho para cambiar de modo, guardar ubicaciones o seleccionar un destino.
+5. En modo Saved, usa la pistola para viajar al destino seleccionado.
 
-## 🎯 Objetivo
+## Seguridad y compatibilidad
 
-Añadir una dimensión táctica y divertida de movilidad y manipulación física en el servidor, permitiendo teletransporte instantáneo entre dos ubicaciones y transporte de entidades de forma nativa.
+- Requiere **Slimefun4-Drake**.
+- No modifica bloques al crear ni usar un portal; por ello no interfiere con FastAsyncWorldEdit.
+- La colocación exige permiso de romper el bloque de anclaje y colocar en el espacio del portal.
+- El tránsito exige permiso de interacción en origen y destino.
+- Las ubicaciones guardadas deben seguir siendo seguras y permitidas cuando se usan.
 
----
+## Compilar
 
-## ⚡ Características Principales
+    mvn clean package
 
-- **Portal Gun**:
-  - Dispara dos portales de colores enlazados que permiten teletransportar jugadores y entidades al atravesarlos.
-  - Conservación de orientación e impulso.
-- **Gravity Gun**:
-  - Permite levantar, mover en el aire y lanzar mobs o bloques a distancia.
-- **Protección Territorial**:
-  - Blindado para respetar regiones de ProtectionStones y zonas seguras (no permite mover entidades ni abrir portales dentro de claims ajenos).
-
----
-
-## 🛠️ Entorno y Compatibilidad
-
-- **Servidor**: Paper / Purpur 1.21.11
-- **Java**: 21
-- **Dependencias**:
-  - `Slimefun4-Drake`
-
----
-
-## 📜 Créditos y Origen
-
-- **Autor original**: Comunidad Slimefun-Lab
-- **Adaptación y Mantenimiento 1.21.11**: **DrakesCraft Labs**
-
-## Qué añade al juego
-
-Addon de Slimefun con contenido propio: máquinas, objetos y recetas nuevas.
-
-
-Todo se fabrica y se investiga desde la guía normal (`/sf guide`), como cualquier otro contenido
-de Slimefun: no hace falta ningún comando especial para empezar.
-
-## Compatibilidad
-
-| | |
-|---|---|
-| Servidor | Paper / Purpur **1.21.11** |
-| Java | **21** |
-| Requiere | [Slimefun4-Drake](https://github.com/SlimefunNewHorizons/Slimefun4-Drake) |
-| Lado | Solo servidor — quien juega no instala nada |
-| Versión | 1.0-SNAPSHOT |
+El JAR queda en target/sfportalguns-extension-1.1.0-SNAPSHOT.jar.
 
 ## Instalación
 
-1. Descarga el `.jar` de la última versión.
-2. Déjalo en la carpeta `plugins/` del servidor, junto a Slimefun.
-3. Reinicia el servidor. Los objetos aparecen solos en la guía.
+1. Detén el servidor de forma segura.
+2. Conserva una copia del JAR anterior.
+3. Elimina el JAR anterior de PortalGun para evitar dos plugins cargados.
+4. Copia el nuevo JAR a plugins junto con Slimefun4-Drake.
+5. Inicia el servidor y comprueba la carga antes de entregarlo a jugadores.
 
-> Este addon está portado al fork de Slimefun de DrakesCraft. Con el Slimefun original puede no
-> cargar, porque cambia el espacio de nombres de las clases.
+## Permisos
+
+| Permiso | Uso |
+|---|---|
+| sfportalguns.infinite | Activa el modo de carga infinita. Por defecto, sólo OP. |
 
 ## Créditos
-- officialdakari
 
-Port y mantenimiento por **DrakesCraft Labs**. La autoría original es de quien figura arriba; el detalle está en [docs/UPSTREAM_ATTRIBUTION.md](https://raw.githubusercontent.com/SlimefunNewHorizons/SFPortalGun/main/docs/UPSTREAM_ATTRIBUTION.md).
+Código original de officialdakari. Port y mantenimiento para DrakesCraft por DrakesCraft Labs.
 
-Licencia **GPL-3.0-only**.
-
----
-
-## 📄 License & Upstream Attribution
-
-This project is a sovereign fork maintained by [**JackStar6677-1**](https://github.com/JackStar6677-1) under [**DrakesCraft Labs**](https://github.com/SlimefunNewHorizons).
-
-- **Original Project:** Created by the upstream authors and the open-source community.
-- **DrakesCraft Optimizations:** Modernized for Paper/Purpur 1.21.11+, Java 21, high concurrency, asynchronous safety, and exploit/duplication prevention.
-- **License:** Distributed under the original **GNU General Public License v3.0 (GPLv3)** (or original upstream license). See the [LICENSE](LICENSE) file for complete terms.
+Licencia: GPL-3.0-only.

@@ -46,7 +46,7 @@ public class PortalGunItem extends SlimefunItem {
         ItemStack gun = event.getItem();
 
         if (player.isSneaking()) {
-            PortalGunPlugin.getMenuListener().open(player, gun);
+            PortalGunNativeDialog.open(PortalGunPlugin.plugin, player, gun);
             return;
         }
 

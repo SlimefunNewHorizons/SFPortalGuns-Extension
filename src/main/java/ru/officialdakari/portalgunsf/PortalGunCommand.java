@@ -22,8 +22,12 @@ final class PortalGunCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(ChatColor.RED + "Hold a Portal Gun first.");
             return true;
         }
+        if (args.length == 1 && args[0].equalsIgnoreCase("legacy")) {
+            PortalGunPlugin.getMenuListener().open(player, gun);
+            return true;
+        }
         if (args.length < 2 || !(args[0].equalsIgnoreCase("name") || args[0].equalsIgnoreCase("color"))) {
-            player.sendMessage(ChatColor.YELLOW + "Usage: /pg name <name> or /pg color <" + PortalGunState.availablePortalTints() + ">");
+            player.sendMessage(ChatColor.YELLOW + "Usage: /pg name <name>, /pg color <" + PortalGunState.availablePortalTints() + ">");
             return true;
         }
         if (args[0].equalsIgnoreCase("name")) {
@@ -41,7 +45,7 @@ final class PortalGunCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) return List.of("name", "color");
+        if (args.length == 1) return List.of("name", "color", "legacy");
         if (args.length == 2 && args[0].equalsIgnoreCase("color")) return List.of("lime", "cyan", "purple", "orange", "red", "blue");
         return List.of();
     }

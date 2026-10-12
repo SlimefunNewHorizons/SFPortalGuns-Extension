@@ -4,7 +4,7 @@
 
 <br/>
 
-<img src="banner.svg" width="100%" alt="SF PortalGuns Extension â€” animated portal banner" />
+<img src="banner.svg" width="100%" alt="SF PortalGuns Extension — animated portal banner" />
 
 # SF PortalGuns Extension
 
@@ -15,7 +15,7 @@
 [![Java](https://img.shields.io/badge/Java-21-FBBF24?style=for-the-badge&logo=openjdk&logoColor=white)](https://adoptium.net)
 [![Slimefun](https://img.shields.io/badge/Slimefun4-Compatible-22C55E?style=for-the-badge)](https://github.com/SlimefunNewHorizons/Slimefun4-Drake)
 
-[ðŸŒ� Website](https://web.drakescraft.cl) Â· [ðŸ’¬ Discord](https://discord.gg/rv3vtXZTk7) Â· [ðŸ“¦ Organization](https://github.com/SlimefunNewHorizons)
+[🌐 Website](https://web.drakescraft.cl) · [💬 Discord](https://discord.gg/rv3vtXZTk7) · [📦 Organization](https://github.com/SlimefunNewHorizons)
 
 </div>
 

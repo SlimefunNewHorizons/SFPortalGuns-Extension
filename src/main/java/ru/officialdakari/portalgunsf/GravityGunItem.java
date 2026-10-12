@@ -53,8 +53,13 @@ public class GravityGunItem extends SlimefunItem {
         addItemHandler(useHandler);
     }
 
+    /** Handler GLOBAL de Slimefun: solo actua si el item tirado es la Gravity Gun y el jugador sostiene una entidad. */
+    static boolean shouldInterceptGravityDrop(boolean droppedIsGravityGun, boolean holdingEntity) {
+        return droppedIsGravityGun && holdingEntity;
+    }
+
     private boolean onGgItemDrop(PlayerDropItemEvent event, Player p, Item item) {
-        if (PortalGunPlugin.holding.containsKey(p.getName())) {
+        if (shouldInterceptGravityDrop(PortalGunPlugin.isGravityGun(item.getItemStack()), PortalGunPlugin.holding.containsKey(p.getName()))) {
             Entity entity = PortalGunPlugin.holding.get(p.getName());
             if (entity instanceof BlockDisplay) {
                 entity.remove();

@@ -51,6 +51,7 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
 
     private static final Random RANDOM = new Random();
     private static final String PORTAL_GUN_ID = "PORTAL_GUN";
+    private static final String GRAVITY_GUN_ID = "GRAVITY_GUN";
     private static final String PORTAL_FLUID_ID = "PORTAL_FLUID";
     private PortalGunMenuListener menuListener;
 
@@ -78,6 +79,11 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
     static boolean isPortalGun(ItemStack item) {
         SlimefunItem slimefunItem = SlimefunItem.getByItem(item);
         return slimefunItem != null && PORTAL_GUN_ID.equals(slimefunItem.getId());
+    }
+
+    static boolean isGravityGun(ItemStack item) {
+        SlimefunItem slimefunItem = SlimefunItem.getByItem(item);
+        return slimefunItem != null && GRAVITY_GUN_ID.equals(slimefunItem.getId());
     }
 
     static boolean tryRefillFromOffhand(Player player, ItemStack gun) {
@@ -209,7 +215,7 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
             null, SlimefunItems.ELECTRO_MAGNET.asOne(), null, null, null, null
         }).register(this);
 
-        SlimefunItemStack gravityGun = new SlimefunItemStack("GRAVITY_GUN", Material.GOLDEN_HOE, "&bGravity Gun",
+        SlimefunItemStack gravityGun = new SlimefunItemStack(GRAVITY_GUN_ID, Material.GOLDEN_HOE, "&bGravity Gun",
             "&7Grab blocks and entities");
         new GravityGunItem(group, gravityGun, RecipeType.MAGIC_WORKBENCH, new ItemStack[] {
             new ItemStack(Material.FISHING_ROD), new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.ENDER_PEARL),

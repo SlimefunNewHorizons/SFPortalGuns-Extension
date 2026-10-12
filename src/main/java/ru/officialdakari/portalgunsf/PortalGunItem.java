@@ -30,12 +30,23 @@ public class PortalGunItem extends SlimefunItem {
         addItemHandler((ItemDropHandler) this::onDrop);
     }
 
+    /**
+     * El ItemDropHandler de Slimefun es GLOBAL: se invoca con CUALQUIER item que tire CUALQUIER jugador, no solo con
+     * la Portal Gun. Solo se interviene si el item tirado es una Portal Gun y el jugador no esta agachado.
+     * (Regresion del 2026-10-11: sin esta comprobacion nadie podia tirar nada sin agacharse.)
+     */
+    static boolean shouldInterceptDrop(boolean droppedIsPortalGun, boolean sneaking) {
+        return droppedIsPortalGun && !sneaking;
+    }
+
     private boolean onDrop(PlayerDropItemEvent event, Player player, org.bukkit.entity.Item dropped) {
-        if (!player.isSneaking()) {
-            event.setCancelled(true);
-            PortalGunPlugin.removePortalPair(PortalGunState.gunId(dropped.getItemStack()));
-            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_CHAIN, 1, 1);
+        ItemStack stack = dropped.getItemStack();
+        if (!shouldInterceptDrop(PortalGunPlugin.isPortalGun(stack), player.isSneaking())) {
+            return false;
         }
+        event.setCancelled(true);
+        PortalGunPlugin.removePortalPair(PortalGunState.gunId(stack));
+        player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_CHAIN, 1, 1);
         return false;
     }
 

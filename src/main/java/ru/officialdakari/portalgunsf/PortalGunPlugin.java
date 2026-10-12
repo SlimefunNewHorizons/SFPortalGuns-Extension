@@ -54,8 +54,12 @@ public class PortalGunPlugin extends JavaPlugin implements SlimefunAddon {
     private static final String PORTAL_FLUID_ID = "PORTAL_FLUID";
     private PortalGunMenuListener menuListener;
 
+    /** Fabrica de claves de ubicaciones guardadas; los tests la sustituyen porque no cargan el plugin completo. */
+    static java.util.function.IntFunction<NamespacedKey> savedLocationKeyFactory =
+        slot -> new NamespacedKey(plugin, "saved_location_" + slot);
+
     static NamespacedKey savedLocationKey(int slot) {
-        return new NamespacedKey(plugin, "saved_location_" + slot);
+        return savedLocationKeyFactory.apply(slot);
     }
 
     static PortalGunMenuListener getMenuListener() {

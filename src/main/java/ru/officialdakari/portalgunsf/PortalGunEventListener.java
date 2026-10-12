@@ -29,6 +29,15 @@ public class PortalGunEventListener implements Listener {
 
     ArrayList<UUID> dnt = new ArrayList(); // dnt stands for do not teleport
 
+    /** El disparo guarda el UUID del tirador (antes su nombre); se aceptan ambos formatos. */
+    static Player resolveOwner(String value) {
+        try {
+            return Bukkit.getPlayer(UUID.fromString(value));
+        } catch (IllegalArgumentException notAUuid) {
+            return Bukkit.getPlayerExact(value);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onHit(ProjectileHitEvent e) {
         Entity projectile = e.getEntity();
@@ -40,7 +49,7 @@ public class PortalGunEventListener implements Listener {
             if (ball.hasMetadata("portalgunball")) {
                 String playerName = ball.getMetadata("portalgunball").get(0).asString();
                 String pgId = ball.getMetadata("portalgunid").get(0).asString();
-                Player p = Bukkit.getPlayer(playerName);
+                Player p = resolveOwner(playerName);
                 if (p == null) {
                     return;
                 }

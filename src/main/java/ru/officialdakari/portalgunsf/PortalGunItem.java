@@ -79,7 +79,6 @@ public class PortalGunItem extends SlimefunItem {
         Location launch = player.getEyeLocation().add(player.getEyeLocation().getDirection().multiply(0.4));
         Snowball projectile = (Snowball) player.getWorld().spawnEntity(launch, EntityType.SNOWBALL);
         projectile.setGravity(false);
-        projectile.setBounce(false);
         projectile.setGlowing(true);
         projectile.setVelocity(launch.getDirection().multiply(4));
         projectile.setMetadata("portalgunball", new FixedMetadataValue(addon.getJavaPlugin(), player.getUniqueId().toString()));

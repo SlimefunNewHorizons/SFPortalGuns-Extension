@@ -1,7 +1,7 @@
 main: ru.officialdakari.portalgunsf.PortalGunPlugin
 name: SFPortalGunsExtension
 version: 1.1.0
-author: DrakesCraft-Labs
+author: SlimefunNewHorizons
 depend: [Slimefun]
 api-version: '1.21'
 permissions:

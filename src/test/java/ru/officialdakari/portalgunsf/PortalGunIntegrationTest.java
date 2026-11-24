@@ -21,10 +21,10 @@ import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.mockbukkit.mockbukkit.world.WorldMock;
 
-import com.github.drakescraft_labs.slimefun4.api.events.PlayerRightClickEvent;
-import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
-import com.github.drakescraft_labs.slimefun4.core.handlers.ItemUseHandler;
-import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
+import io.github.thebusybiscuit.slimefun4.api.events.PlayerRightClickEvent;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.core.handlers.ItemUseHandler;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 
 /** Carga Slimefun y el addon juntos y comprueba que clic derecho con la Portal Gun dispara de verdad. */
 public class PortalGunIntegrationTest {
@@ -44,10 +44,10 @@ public class PortalGunIntegrationTest {
         try {
             Object integrations = Slimefun.getIntegrations();
             for (var field : integrations.getClass().getDeclaredFields()) {
-                if (field.getType() == com.github.drakescraft_labs.slimefun4.libraries.dough.protection.ProtectionManager.class) {
+                if (field.getType() == io.github.thebusybiscuit.slimefun4.libraries.dough.protection.ProtectionManager.class) {
                     field.setAccessible(true);
                     if (field.get(integrations) == null) {
-                        field.set(integrations, new com.github.drakescraft_labs.slimefun4.libraries.dough.protection.ProtectionManager(slimefun));
+                        field.set(integrations, new io.github.thebusybiscuit.slimefun4.libraries.dough.protection.ProtectionManager(slimefun));
                     }
                     return;
                 }
